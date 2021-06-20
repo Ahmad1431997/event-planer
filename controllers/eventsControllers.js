@@ -1,8 +1,19 @@
-const { Event } = require("../db/models");
-
+const { Event, sequelize } = require("../db/models");
+const {Op} = require("sequelize")
 exports.eventsList = async (req, res) => {
   const startingDate = req.body.startingDate;
   try {
+    if(startingDate){
+      const events = await Event.findAll({
+        where: {startDate :{[Op.gt]:startingDate}},
+        attributes: ["id", "name", "image"],
+      order: [
+        ["startDate", "ASC"],
+        ["name", "ASC"],
+      ],
+      })
+      res.json(events);
+    }else {
     const allEvents = await Event.findAll({
       attributes: ["id", "name", "image"],
       order: [
@@ -11,6 +22,7 @@ exports.eventsList = async (req, res) => {
       ],
     });
     res.json(allEvents);
+  }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -25,7 +37,7 @@ exports.eventDetailes = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
-  const { eventId } = req.params;
+ 
 };
 
 exports.eventsCreat = async (req, res) => {
@@ -34,7 +46,7 @@ exports.eventsCreat = async (req, res) => {
     if (req.body.length) {
       newEvent = await Event.bulkCreate(req.body);
     } else {
-      const newEvent = await Event.create(req.body);
+       newEvent = await Event.create(req.body);
     }
     res.json(newEvent);
   } catch (error) {
@@ -73,3 +85,16 @@ exports.eventDelete = async (req, res) => {
     res.status(500).json({ message: error.message ?? "server error" });
   }
 };
+
+exports.fullyBooked =async (req,res)=>{
+  try {
+    const events = await Event.findAll({
+      where : {numOfSeats:{[Op.eq]:sequelize.col("bookedSeats") }}
+      
+    })
+    res.json(events)
+    
+  } catch (error) {
+    res.status(500).json({ message: error.message ?? "server error" });
+  }
+}

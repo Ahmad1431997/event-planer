@@ -10,7 +10,7 @@ app.use(express.json());
 app.use("/events", eventsRoutes);
 
 const db = require("./db/models");
-db.sequelize.sync({ alter: true });
+db.sequelize.sync();
 
 const PORT = 8000;
 app.listen(PORT, () => {

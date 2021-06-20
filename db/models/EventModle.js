@@ -1,3 +1,5 @@
+
+
 var today = new Date();
 var dd = String(today.getDate()).padStart(2, "0");
 var mm = String(today.getMonth() + 1).padStart(2, "0"); //January is 0!
@@ -37,7 +39,6 @@ module.exports = (sequelize, DataTypes) => {
 
     numOfSeats: {
       type: DataTypes.INTEGER,
-      unique: true,
       validate: {
         min: 0,
       },
@@ -45,20 +46,37 @@ module.exports = (sequelize, DataTypes) => {
 
     bookedSeats: {
       type: DataTypes.INTEGER,
-      // validate: {
-      //   max: this.numOfSeats,
-      // },
+      validate: {
+        max(value) {
+          if (value > this.numOfSeats) {
+            throw new Error("Booked Seats must be <= number of Seats");
+      }}}
     },
-
+  
     startDate: {
       type: DataTypes.DATEONLY,
-      // validate: {
-      //   isAfter: today,
-      // },
+      validate: {
+        validation(value) {
+          if (this.endDate && !value) {
+            throw new Error("There must be a Start Date");
+          }
+        },
+        isAfter: "2021-06-21",
+      },
+    
     },
 
     endDate: {
-      type: DataTypes.DATEONLY,
+      type: DataTypes.DATE,
+  
+      validation(value) {
+          if (this.startDate && !value) {
+            throw new Error("There must be an End Date");
+          }
+          if (value < this.startDate) {
+            throw new Error("End date must be after startDate");
+          }
+        }
     },
   });
 };
